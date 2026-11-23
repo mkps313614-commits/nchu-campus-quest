@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>NCHU Campus Quest</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/goose.css" />
 </head>
 <body>
   <div class="phone-container">
@@ -44,27 +45,43 @@
       </div>
     </section>
 
-    <!-- ================= 2. 校園探索四宮格大拼圖頁 ================= -->
+    <!-- ================= 2. 校園探索遊戲頁（包含經典拼圖與校鵝散步） ================= -->
     <section id="page-game" class="page hidden">
       <div class="subpage-header">
         <button class="back-btn" data-target="page-home">← BACK</button>
         <h2 class="subpage-title">CAMPUS MAP</h2>
       </div>
 
-      <!-- GPS 狀態與啟動列 -->
-      <div class="gps-bar">
+      <!-- GPS 狀態與啟動列（經典模式用） -->
+      <div class="gps-bar" id="classic-gps-bar">
         <span id="gps-status-text">GPS: Standby</span>
         <button id="btn-enable-gps" class="gps-btn">Enable GPS</button>
       </div>
 
-      <!-- 2x2 四宮格大拼圖 -->
+      <!-- 2x2 四宮格大拼圖（經典模式用） -->
       <div class="puzzle-board" id="puzzle-board"></div>
 
-      <!-- 下方控制面板 -->
+      <!-- 完整校園地圖（校鵝散步模式專用） -->
+      <div id="map-container" class="goose-full-map hidden">
+        <img src="images/map.png" alt="NCHU Full Map" class="goose-map-img" />
+      </div>
+
+      <!-- 鵝散步控制面板（直接放在完整地圖正下方） -->
+      <div id="goose-hud" class="goose-hud hidden">
+        <div class="hud-status">
+          <span id="goose-status-text">準備出發！請選擇目的地</span>
+        </div>
+        <div class="hud-controls">
+          <select id="goose-dest-select" class="pixel-select"></select>
+          <button id="btn-goose-go" class="pixel-btn btn-goose">出發！</button>
+          <button id="btn-exit-goose" class="pixel-btn btn-close">結束散步</button>
+        </div>
+      </div>
+
+      <!-- 下方控制面板（經典模式用） -->
       <div class="zone-detail-panel" id="zone-detail-panel">
         <div class="panel-top-row">
           <h3 id="panel-zone-name">Select a Zone</h3>
-          <!-- 解鎖後才會出現的「放大探索」按鈕 -->
           <button id="btn-zoom-zone" class="zoom-btn hidden">🔍 Zoom In</button>
         </div>
         <p id="panel-zone-desc">Tap a puzzle block to inspect missions or unlock via GPS.</p>
@@ -81,17 +98,11 @@
 
       <p class="subpage-desc">Tap the glowing pins on the map to read building stories!</p>
 
-      <!-- 放大後的局部彩圖與互動地標圖釘 -->
-        <div class="zoomed-map-box" id="zoomed-map-box">
-          <img
-               src="images/map.png"
-              alt="Zoomed Campus Zone"
-             id="zoomed-map-img"
-          />
-          <div id="zoomed-pins-layer"></div>
-        </div>
+      <div class="zoomed-map-box" id="zoomed-map-box">
+        <img src="images/map.png" alt="Zoomed Campus Zone" id="zoomed-map-img" />
+        <div id="zoomed-pins-layer"></div>
+      </div>
 
-      <!-- 點擊圖釘後顯示的建築物詳細介紹卡 -->
       <div class="landmark-story-card" id="landmark-story-card">
         <h3 id="story-title">Tap a Pin Above</h3>
         <p id="story-content">Discover hidden facts and history about NCHU landmarks in this unlocked sector.</p>
@@ -133,25 +144,55 @@
       </div>
 
       <div class="profile-actions">
-        <input type="text" id="input-name" class="pixel-input" placeholder="Enter your nickname..." />
-        <button id="btn-save-name" class="start-btn full-width">Save Name</button>
-        <button id="btn-reset-save" class="reset-btn">Reset Demo Progress</button>
+        <input type="text" id="input-name" placeholder="Enter your explorer name..." />
+        <button id="btn-save-name">Save Name</button>
+        <button id="btn-reset-game" class="danger-btn">Reset Progress</button>
       </div>
     </section>
 
-    <!-- ================= 5. 解鎖成就慶祝彈窗 ================= -->
-    <div id="unlock-modal" class="modal-overlay hidden">
-      <div class="modal-box">
-        <div class="modal-tag">NEW ACHIEVEMENT!</div>
-        <img src="images/badge.png" alt="Badge" class="modal-badge-img" />
-        <h3 id="modal-ach-title">Achievement Title</h3>
-        <p id="modal-ach-desc">Zone unlocked! You can now Zoom In to explore details.</p>
-        <button id="btn-close-modal" class="start-btn">Awesome!</button>
-      </div>
-    </div>
-
   </div>
 
-  <script src="script.js"></script>
+  <!-- ================= 彈出視窗區塊（放在 phone-container 外面，覆蓋全螢幕） ================= -->
+  <!-- 1. 點擊 Start 後的模式選擇彈窗 -->
+  <div id="mode-select-modal" class="goose-modal hidden">
+    <div class="goose-modal-box">
+      <h2 class="pixel-title">SELECT MODE</h2>
+      <p class="modal-desc">請選擇你的中興校園探索方式：</p>
+      <div class="mode-btn-group">
+        <button id="btn-classic-mode" class="pixel-btn btn-primary">
+          🗺️ 經典地標探索
+        </button>
+        <button id="btn-goose-mode" class="pixel-btn btn-goose">
+          🦢 校鵝散步模擬
+        </button>
+      </div>
+      <button id="btn-close-mode" class="pixel-btn btn-close">返回</button>
+    </div>
+  </div>
+
+  <!-- 2. 散步途中的「意外互動」選擇彈窗 -->
+  <div id="encounter-modal" class="goose-modal hidden">
+    <div class="goose-modal-box encounter-box">
+      <div class="encounter-badge">! 突發事件 !</div>
+      <h3 id="encounter-title" class="encounter-title">事件標題</h3>
+      <p id="encounter-desc" class="encounter-desc">事件描述內容...</p>
+      <div class="choice-btn-group">
+        <button id="btn-choice-interact" class="pixel-btn btn-primary">答理</button>
+        <button id="btn-choice-ignore" class="pixel-btn btn-secondary">不搭理</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 解鎖成就提示通知 -->
+  <div id="achievement-toast" class="achievement-toast hidden">
+    <span class="toast-icon">🏆</span>
+    <div>
+      <div class="toast-header">成就解鎖！</div>
+      <div id="toast-title" class="toast-name">成就名稱</div>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/goose.js"></script>
 </body>
 </html>
