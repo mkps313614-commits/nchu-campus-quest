@@ -511,6 +511,11 @@ function renderLandmarkPins(landmarks) {
             // 顯示建築物介紹
             showLandmarkStory(landmark);
 
+            // ✅ 【新增】放大進入該建築物的戶外廣場與室內互動場景
+            if (typeof LandmarkScene !== "undefined") {
+                LandmarkScene.openBuildingScene(landmark);
+            }
+
         });
 
         layer.appendChild(pin);
@@ -530,6 +535,7 @@ function showLandmarkStory(landmark) {
         .textContent = landmark.description;
 
 }
+
 
 // ================= 7. 核心成就解鎖函式 =================
 

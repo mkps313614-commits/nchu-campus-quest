@@ -6,6 +6,7 @@
   <title>NCHU Campus Quest</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/goose.css" />
+  <link rel="stylesheet" href="css/scene.css" />
 </head>
 <body>
   <div class="phone-container">
@@ -69,12 +70,12 @@
       <!-- 鵝散步控制面板（直接放在完整地圖正下方） -->
       <div id="goose-hud" class="goose-hud hidden">
         <div class="hud-status">
-          <span id="goose-status-text">準備出發！請選擇目的地</span>
+          <span id="goose-status-text">Let's go! Please select a destination.</span>
         </div>
         <div class="hud-controls">
           <select id="goose-dest-select" class="pixel-select"></select>
-          <button id="btn-goose-go" class="pixel-btn btn-goose">出發！</button>
-          <button id="btn-exit-goose" class="pixel-btn btn-close">結束散步</button>
+          <button id="btn-goose-go" class="pixel-btn btn-goose">Go!</button>
+          <button id="btn-exit-goose" class="pixel-btn btn-close">Exit Walk</button>
         </div>
       </div>
 
@@ -92,22 +93,53 @@
     <!-- ================= 2.5 區域「放大細節探索」視圖 ================= -->
     <section id="page-zone-zoom" class="page hidden">
       <div class="subpage-header">
-        <button class="back-btn" data-target="page-game">← MAP</button>
+        <button class="back-btn" id="btn-zoom-back" data-target="page-game">← MAP</button>
         <h2 class="subpage-title" id="zoom-zone-title">ZONE DETAIL</h2>
       </div>
 
-      <p class="subpage-desc">Tap the glowing pins on the map to read building stories!</p>
-
-      <div class="zoomed-map-box" id="zoomed-map-box">
-        <img src="images/map.png" alt="Zoomed Campus Zone" id="zoomed-map-img" />
-        <div id="zoomed-pins-layer"></div>
+      <!-- 階段 A：區域地圖與地標圖釘 -->
+      <div id="zone-map-stage">
+        <p class="subpage-desc">Tap a glowing landmark pin to explore its surroundings!</p>
+        <div class="zoomed-map-box" id="zoomed-map-box">
+          <img src="images/map.png" alt="Zoomed Campus Zone" id="zoomed-map-img" />
+          <div id="zoomed-pins-layer"></div>
+        </div>
+        <div class="landmark-story-card" id="landmark-story-card">
+          <h3 id="story-title">Tap a Pin Above</h3>
+          <p id="story-content">Select a building pin to zoom into the campus scene and meet NPCs!</p>
+        </div>
       </div>
 
-      <div class="landmark-story-card" id="landmark-story-card">
-        <h3 id="story-title">Tap a Pin Above</h3>
-        <p id="story-content">Discover hidden facts and history about NCHU landmarks in this unlocked sector.</p>
+      <!-- 階段 B：建築物周邊 / 室內 RPG 互動場景 -->
+      <div id="building-scene-stage" class="hidden">
+        <div class="scene-top-bar">
+          <span id="scene-location-badge" class="scene-badge">🌳 Outdoor Plaza</span>
+          <button id="btn-back-to-zone" class="scene-mini-btn">↩ Zone Map</button>
+        </div>
+
+        <div id="rpg-scene-canvas" class="rpg-scene-canvas outdoor-theme">
+          <div id="scene-building-box" class="scene-building-box">
+            <div id="scene-building-sign" class="building-sign">College of Liberal Arts</div>
+            <button id="btn-enter-building" class="enter-door-btn">🚪 Enter Building</button>
+          </div>
+          <div id="scene-actors-layer"></div>
+        </div>
+
+        <div id="rpg-dialogue-box" class="rpg-dialogue-box">
+          <div class="dialogue-speaker" id="dialogue-speaker">Exploration Tip</div>
+          <p class="dialogue-text" id="dialogue-text">Tap the bouncing "!" icons to chat, or tap the building door to step inside!</p>
+                  <!-- 下方 RPG 對話框（點擊驚嘆號後顯示對話與回覆選項） -->
+        <div id="rpg-dialogue-box" class="rpg-dialogue-box">
+          <div class="dialogue-speaker" id="dialogue-speaker">Exploration Tip</div>
+          <p class="dialogue-text" id="dialogue-text">Tap the bouncing "!" icons to chat, or tap the building door to step inside!</p>
+          <!-- ✅ 【新增】玩家回覆選項按鈕區 -->
+          <div id="dialogue-choices" class="dialogue-choices"></div>
+        </div>
+
+        </div>
       </div>
     </section>
+
 
     <!-- ================= 3. Achievement 成就頁面 ================= -->
     <section id="page-achievement" class="page hidden">
@@ -157,28 +189,28 @@
   <div id="mode-select-modal" class="goose-modal hidden">
     <div class="goose-modal-box">
       <h2 class="pixel-title">SELECT MODE</h2>
-      <p class="modal-desc">請選擇你的中興校園探索方式：</p>
+      <p class="modal-desc">Please choose how you'd like to explore the campus：</p>
       <div class="mode-btn-group">
         <button id="btn-classic-mode" class="pixel-btn btn-primary">
-          🗺️ 經典地標探索
+          🗺️ Exploring Landmarks(GPS)
         </button>
         <button id="btn-goose-mode" class="pixel-btn btn-goose">
-          🦢 校鵝散步模擬
+          🦢 Goose Walking Simulation
         </button>
       </div>
-      <button id="btn-close-mode" class="pixel-btn btn-close">返回</button>
+      <button id="btn-close-mode" class="pixel-btn btn-close">Return</button>
     </div>
   </div>
 
   <!-- 2. 散步途中的「意外互動」選擇彈窗 -->
   <div id="encounter-modal" class="goose-modal hidden">
     <div class="goose-modal-box encounter-box">
-      <div class="encounter-badge">! 突發事件 !</div>
-      <h3 id="encounter-title" class="encounter-title">事件標題</h3>
-      <p id="encounter-desc" class="encounter-desc">事件描述內容...</p>
+      <div class="encounter-badge">! Unexpected Event !</div>
+      <h3 id="encounter-title" class="encounter-title">Event Title</h3>
+      <p id="encounter-desc" class="encounter-desc">Event description...</p>
       <div class="choice-btn-group">
-        <button id="btn-choice-interact" class="pixel-btn btn-primary">答理</button>
-        <button id="btn-choice-ignore" class="pixel-btn btn-secondary">不搭理</button>
+        <button id="btn-choice-interact" class="pixel-btn btn-primary">Respond</button>
+        <button id="btn-choice-ignore" class="pixel-btn btn-secondary">Ignore</button>
       </div>
     </div>
   </div>
@@ -187,12 +219,57 @@
   <div id="achievement-toast" class="achievement-toast hidden">
     <span class="toast-icon">🏆</span>
     <div>
-      <div class="toast-header">成就解鎖！</div>
-      <div id="toast-title" class="toast-name">成就名稱</div>
+      <div class="toast-header">Achievement Unlocked!</div>
+      <div id="toast-title" class="toast-name">Achievement Name</div>
     </div>
   </div>
 
+    <!-- 【新增】點擊場景驚嘆號 (!) 後跳出的 RPG 特寫對話頁面 -->
+  <div id="npc-dialogue-overlay" class="npc-overlay hidden">
+    <div class="npc-overlay-card" id="npc-overlay-bg">
+      <!-- 頂部狀態與離開對話按鈕 -->
+      <div class="npc-overlay-top">
+        <span class="npc-level-badge">🎓 LV.1 Campus Rookie</span>
+        <button id="btn-close-dialogue" class="npc-exit-btn">✕ End Chat</button>
+      </div>
+
+      <!-- 中央特寫對峙舞台（若無專屬特寫圖，自動顯示主角鵝與互動對象） -->
+      <!-- 中央特寫對峙舞台（左右兩邊都使用你的專屬 PNG 圖片） -->
+      <!-- 中央特寫對峙舞台 -->
+      <div class="npc-closeup-stage" id="npc-closeup-stage">
+        <div class="closeup-char goose-char">
+          <img src="images/goose.png" alt="NCHU Goose" style="width: 90px; height: 90px; object-fit: contain;" />
+        </div>
+        <div class="closeup-bubble">...</div>
+        <div class="closeup-char target-char">
+          <!-- ✅ 直接寫死 90px x 90px，優先權最高，100% 絕對變大！ -->
+          <img id="closeup-target-img" src="images/npc-granny.png" alt="Character" style="width: 90px; height: 90px; object-fit: contain; image-rendering: pixelated;" />
+        </div>
+      </div>
+
+
+
+      <!-- 附圖同款：右上方浮動回覆選項框 -->
+      <div id="overlay-choices-box" class="overlay-choices-box"></div>
+
+      <!-- 附圖同款：下方帶頭像與藍色名牌的 RPG 對話框 -->
+      <div class="overlay-dialogue-panel">
+        <div class="overlay-avatar-box">
+          <img src="images/goose.png" alt="Avatar" id="overlay-speaker-avatar" />
+        </div>
+        <div class="overlay-text-area">
+          <div id="overlay-speaker-name" class="overlay-speaker-tag">NCHU Goose</div>
+          <p id="overlay-dialogue-text" class="overlay-dialogue-content">Dialogue text here...</p>
+          <span class="dialogue-next-arrow">▼</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <script src="js/script.js"></script>
   <script src="js/goose.js"></script>
+  <script src="js/landmark-scene.js"></script>
+
 </body>
 </html>
