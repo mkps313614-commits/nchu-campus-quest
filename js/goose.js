@@ -6,34 +6,99 @@ const GooseAdventure = (() => {
   const DEBUG_PICK_COORDS = true;
 
   const LOCATIONS = {
-    nchu_lake:     { name: "NCHU Lake (Start)", x: 48.0, y: 44.0 },
-    main_gate:     { name: "Main Gate", x: 65.5, y: 12.0 },
-    library:       { name: "University Library", x: 48.0, y: 55.0 },
-    admin_bldg:    { name: "Administration Building", x: 50.0, y: 27.0 },
-    black_forest:  { name: "Black Forest", x: 48.0, y: 17.5 },
-    student_union: { name: "Student Union (Yuan-Ting)", x: 25.0, y: 44.0 },
-    gym:           { name: "Gymnasium", x: 24.0, y: 63.0 },
-    hui_sen:       { name: "Hui-Sun Auditorium", x: 84.0, y: 14.0 }
+    nchu_lake:     { name: "NCHU Lake (Start)", x: 40.0, y: 44.0 },
+    main_gate:     { name: "Main Gate", x: 45.5, y: 12.0 },
+    library:       { name: "Library", x: 44.0, y: 60.0 },
+    admin_bldg:    { name: "Administration Building", x: 40.0, y: 28.0 },
+    black_forest:  { name: "Black Forest", x: 40.0, y: 18.5 },
+    student_union: { name: "Yuan-Ting", x: 75.0, y: 15.0 },
+    gym:           { name: "Gymnasium", x: 60.0, y: 78.0 },
+    hui_sen:       { name: "Hui-Sun Auditorium", x: 60.0, y: 14.0 }
   };
 
-  // Road waypoints so the goose follows paths instead of cutting through buildings
+  // Road waypoints aligned with your updated LOCATIONS coordinates
   const CUSTOM_ROUTES = {
-    "nchu_lake_to_main_gate": [
-      { x: 64.5, y: 44.0 },
-      { x: 64.5, y: 19.5 },
-      { x: 65.5, y: 12.0 }
+    // 1. 中興湖 (40.0, 44.0) <-> 行政大樓 (40.0, 25.0)
+    "nchu_lake_to_admin_bldg": [
+      { x: 40.0, y: 25.0 }
     ],
-    "nchu_lake_to_library": [
-      { x: 37.0, y: 44.0 },
-      { x: 37.0, y: 55.0 },
-      { x: 48.0, y: 55.0 }
+    "admin_bldg_to_nchu_lake": [
+      { x: 40.0, y: 44.0 }
     ],
+
+    // 2. 中興湖 (40.0, 44.0) <-> 黑森林 (40.0, 18.5)
     "nchu_lake_to_black_forest": [
-      { x: 37.0, y: 44.0 },
-      { x: 37.0, y: 19.5 },
-      { x: 48.0, y: 17.5 }
+      { x: 36.5, y: 44.0 },
+      { x: 36.5, y: 18.5 },
+      { x: 40.0, y: 18.5 }
+    ],
+    "black_forest_to_nchu_lake": [
+      { x: 36.5, y: 18.5 },
+      { x: 36.5, y: 44.0 },
+      { x: 40.0, y: 44.0 }
+    ],
+
+    // 3. 中興湖 (40.0, 44.0) <-> 校門口 (45.5, 12.0)
+    "nchu_lake_to_main_gate": [
+      { x: 45.5, y: 44.0 },
+      { x: 45.5, y: 12.0 }
+    ],
+    "main_gate_to_nchu_lake": [
+      { x: 45.5, y: 44.0 },
+      { x: 40.0, y: 44.0 }
+    ],
+
+    // 4. 中興湖 (40.0, 44.0) <-> 惠蓀堂 (60.0, 14.0)
+    "nchu_lake_to_hui_sen": [
+      { x: 45.5, y: 44.0 },
+      { x: 45.5, y: 19.5 },
+      { x: 60.0, y: 19.5 },
+      { x: 60.0, y: 14.0 }
+    ],
+    "hui_sen_to_nchu_lake": [
+      { x: 60.0, y: 19.5 },
+      { x: 45.5, y: 19.5 },
+      { x: 45.5, y: 44.0 },
+      { x: 40.0, y: 44.0 }
+    ],
+
+    // 5. 中興湖 (40.0, 44.0) <-> 圓廳 (70.0, 15.0)
+    "nchu_lake_to_student_union": [
+      { x: 45.5, y: 44.0 },
+      { x: 45.5, y: 19.5 },
+      { x: 70.0, y: 19.5 },
+      { x: 70.0, y: 15.0 }
+    ],
+    "student_union_to_nchu_lake": [
+      { x: 70.0, y: 19.5 },
+      { x: 45.5, y: 19.5 },
+      { x: 45.5, y: 44.0 },
+      { x: 40.0, y: 44.0 }
+    ],
+
+    // 6. 中興湖 (40.0, 44.0) <-> 圖書館 (48.0, 55.0)
+    "nchu_lake_to_library": [
+      { x: 40.0, y: 55.0 },
+      { x: 44.0, y: 60.0 }
+    ],
+    "library_to_nchu_lake": [
+      { x: 40.0, y: 55.0 },
+      { x: 40.0, y: 44.0 }
+    ],
+
+    // 7. 中興湖 (40.0, 44.0) <-> 體育館 (50.0, 75.0)
+    "nchu_lake_to_gym": [
+      { x: 40.0, y: 65.0 },
+      { x: 50.0, y: 65.0 },
+      { x: 50.0, y: 75.0 }
+    ],
+    "gym_to_nchu_lake": [
+      { x: 50.0, y: 65.0 },
+      { x: 40.0, y: 65.0 },
+      { x: 40.0, y: 44.0 }
     ]
   };
+
 
   // Random & Location-based Encounters (including getting lost!)
   const ENCOUNTERS = [
