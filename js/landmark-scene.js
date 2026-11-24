@@ -264,11 +264,22 @@ const LandmarkScene = (() => {
       buildingSign.style.display = "block";
       buildingBox.style.top = "22%";
     }
+    // ✅ 大框框：顯示建築物名稱與背景介紹（戶外 / 室內自動切換）
+    speakerEl.textContent = isIndoor
+      ? currentLandmark.name + " (Interior)"
+      : currentLandmark.name;
 
-        speakerEl.textContent = currentLandmark.name;
     dialogueEl.textContent = isIndoor
-      ? "You stepped inside! Tap a bouncing '!' icon to start a conversation."
-      : "Tap a bouncing '!' icon to talk, or tap the door button to enter!";
+      ? "Inside the building, classrooms, faculty offices, and student exhibition walls create a quiet academic atmosphere."
+      : currentLandmark.description;
+
+    // ✅ 小框框：顯示精簡的 RPG 操作提示
+    const hintTextEl = document.getElementById("rpg-hint-text");
+    if (hintTextEl) {
+      hintTextEl.textContent = isIndoor
+        ? "Tap a '!' icon inside to talk, or tap 'Step Outside' to exit."
+        : "Tap a bouncing '!' to chat, or tap the door to step inside!";
+    }
 
     actorsLayer.innerHTML = "";
     const actors = isIndoor ? data.indoorActors : data.outdoorActors;
@@ -290,6 +301,7 @@ const LandmarkScene = (() => {
 
       actorsLayer.appendChild(actorEl);
     });
+
   }
 
   function openDialogueOverlay(actor) {

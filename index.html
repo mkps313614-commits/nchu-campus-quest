@@ -125,18 +125,23 @@
           <div id="scene-actors-layer"></div>
         </div>
 
+                <!-- 下方資訊卡（大框框：建築介紹 / 內層小框框：RPG 操作提示） -->
         <div id="rpg-dialogue-box" class="rpg-dialogue-box">
-          <div class="dialogue-speaker" id="dialogue-speaker">Exploration Tip</div>
-          <p class="dialogue-text" id="dialogue-text">Tap the bouncing "!" icons to chat, or tap the building door to step inside!</p>
-                  <!-- 下方 RPG 對話框（點擊驚嘆號後顯示對話與回覆選項） -->
-        <div id="rpg-dialogue-box" class="rpg-dialogue-box">
-          <div class="dialogue-speaker" id="dialogue-speaker">Exploration Tip</div>
-          <p class="dialogue-text" id="dialogue-text">Tap the bouncing "!" icons to chat, or tap the building door to step inside!</p>
-          <!-- ✅ 【新增】玩家回覆選項按鈕區 -->
-          <div id="dialogue-choices" class="dialogue-choices"></div>
+          <div class="building-info-header">
+            <span class="building-tag">LANDMARK INFO</span>
+            <div class="dialogue-speaker" id="dialogue-speaker">College of Liberal Arts</div>
+          </div>
+          <p class="dialogue-text" id="dialogue-text">
+            This is a key teaching space in the College of Humanities, surrounded by lush greenery and campus life.
+          </p>
+
+          <!-- 精巧版操作提示小框 -->
+          <div class="rpg-hint-banner">
+            <span class="hint-icon">💡</span>
+            <span id="rpg-hint-text">Tap a bouncing "!" to chat, or tap the door to step inside!</span>
+          </div>
         </div>
 
-        </div>
       </div>
     </section>
 
