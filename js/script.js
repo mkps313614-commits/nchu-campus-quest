@@ -511,7 +511,7 @@ function renderLandmarkPins(landmarks) {
             // 顯示建築物介紹
             showLandmarkStory(landmark);
 
-            // ✅ 【新增】放大進入該建築物的戶外廣場與室內互動場景
+            // 放大進入該建築物的戶外廣場與室內互動場景
             if (typeof LandmarkScene !== "undefined") {
                 LandmarkScene.openBuildingScene(landmark);
             }
@@ -536,118 +536,110 @@ function showLandmarkStory(landmark) {
 
 }
 
-
-// ================= 7. 核心成就解鎖函式 =================
+// ================= 7. 解鎖成就與成就頁面渲染 =================
 
 function unlockAchievement(zoneIndex, achId) {
-
     const zone = gameData[zoneIndex];
-
-    const targetAch = zone.achievements.find(
-        a => a.id === achId
-    );
-
-    if (targetAch && !targetAch.unlocked) {
-
-        targetAch.unlocked = true;
-
+    const ach = zone.achievements.find(a => a.id === achId);
+    if (ach && !ach.unlocked) {
+        ach.unlocked = true;
         saveGame();
-
-        // 更新拼圖顏色與區域資訊
         renderPuzzleBoard();
+        updateProfileProgress();
+    }
+}
 
-        // 顯示祝賀彈窗
-        document.getElementById("modal-ach-title")
-            .textContent = targetAch.title;
+function renderAchievementsPage() {
+    const container = document.getElementById("achievement-categories");
+    if (!container) return;
+    container.innerHTML = "";
 
-        document.getElementById("modal-ach-desc")
-            .textContent =
-            `【${zone.zoneName}】Area explored!${targetAch.desc}`;
+    gameData.forEach(zone => {
+        const unlockedCount = zone.achievements.filter(a => a.unlocked).length;
+        const block = document.createElement("div");
+        block.className = "category-block";
 
-        document.getElementById("unlock-modal")
-            .classList.remove("hidden");
+        let cardsHtml = "";
+        zone.achievements.forEach(ach => {
+            cardsHtml += `
+                <div class="badge-item ${ach.unlocked ? "unlocked" : "locked"}">
+                    <img src="images/badge.png" alt="${ach.title}" />
+                    <div class="badge-name">${ach.title}</div>
+                    <div class="badge-desc">${ach.desc}</div>
+                </div>
+            `;
+        });
 
+        block.innerHTML = `
+            <div class="category-header">
+                <span class="category-title">${zone.zoneName}</span>
+                <span class="category-status">${unlockedCount} / ${zone.achievements.length}</span>
+            </div>
+            <div class="category-cards">${cardsHtml}</div>
+        `;
+
+        container.appendChild(block);
+    });
+}
+
+// ================= 8. Profile 個人頁面進度與儲存名字 =================
+
+function updateProfileProgress() {
+    let total = 0;
+    let unlocked = 0;
+
+    gameData.forEach(zone => {
+        zone.achievements.forEach(ach => {
+            total++;
+            if (ach.unlocked) unlocked++;
+        });
+    });
+
+    const countEl = document.getElementById("progress-count");
+    const fillEl = document.getElementById("progress-bar-fill");
+
+    if (countEl) countEl.textContent = `${unlocked} / ${total}`;
+    if (fillEl) fillEl.style.width = total > 0 ? `${(unlocked / total) * 100}%` : "0%";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const displayNameEl = document.getElementById("display-name");
+    const inputNameEl = document.getElementById("input-name");
+    const btnSaveName = document.getElementById("btn-save-name");
+    const btnResetGame = document.getElementById("btn-reset-game");
+
+    // 1. 載入已儲存的名字
+    const savedName = localStorage.getItem("nchu_player_name");
+    if (savedName && displayNameEl) {
+        displayNameEl.textContent = savedName;
     }
 
-}
+    // 2. 點擊 Save Name 儲存新名字
+    if (btnSaveName && inputNameEl && displayNameEl) {
+        btnSaveName.addEventListener("click", () => {
+            const newName = inputNameEl.value.trim();
+            if (!newName) {
+                alert("Please enter a name first!");
+                return;
+            }
+            displayNameEl.textContent = newName;
+            localStorage.setItem("nchu_player_name", newName);
+            inputNameEl.value = "";
+            alert("Name saved: " + newName);
+        });
+    }
 
-document.getElementById('btn-close-modal').addEventListener('click', () => {
-  document.getElementById('unlock-modal').classList.add('hidden');
-});
+    // 3. 點擊 Reset Progress 重設遊戲進度
+    if (btnResetGame) {
+        btnResetGame.addEventListener("click", () => {
+            if (confirm("Are you sure you want to reset all progress and achievements?")) {
+                localStorage.removeItem("nchu_game_save");
+                localStorage.removeItem("nchu_achievements");
+                localStorage.removeItem("nchu_player_name");
+                location.reload();
+            }
+        });
+    }
 
-// ================= 5. 渲染「Achievement 頁面」（依區塊分類） =================
-function renderAchievementsPage() {
-  const container = document.getElementById('achievement-categories');
-  container.innerHTML = "";
-
-  gameData.forEach(zone => {
-    const unlockedCount = zone.achievements.filter(a => a.unlocked).length;
-    const totalCount = zone.achievements.length;
-
-    const blockDiv = document.createElement('div');
-    blockDiv.className = 'category-block';
-
-    let cardsHTML = "";
-    zone.achievements.forEach(ach => {
-      cardsHTML += `
-        <div class="badge-item ${ach.unlocked ? 'unlocked' : 'locked'}">
-          <img src="images/badge.png" alt="${ach.title}" />
-          <span class="badge-name">${ach.title}</span>
-          <span class="badge-desc">${ach.unlocked ? ach.desc : 'Not Yet Unlocked'}</span>
-        </div>
-      `;
-    });
-
-    blockDiv.innerHTML = `
-      <div class="category-header">
-        <span class="category-title">${zone.zoneName}</span>
-        <span class="category-status">${unlockedCount} / ${totalCount}</span>
-      </div>
-      <div class="category-cards">
-        ${cardsHTML}
-      </div>
-    `;
-
-    container.appendChild(blockDiv);
-  });
-}
-
-// ================= 6. Profile 頁面進度連動與重置 =================
-function updateProfileProgress() {
-  let total = 0;
-  let unlocked = 0;
-  gameData.forEach(zone => {
-    zone.achievements.forEach(ach => {
-      total++;
-      if (ach.unlocked) unlocked++;
-    });
-  });
-
-  document.getElementById('progress-count').textContent = `${unlocked} / ${total}`;
-  const percent = Math.round((unlocked / total) * 100);
-  document.getElementById('progress-bar-fill').style.width = `${percent}%`;
-}
-
-const savedName = localStorage.getItem('nchu_player_name');
-if (savedName) document.getElementById('display-name').textContent = savedName;
-
-document.getElementById('btn-save-name').addEventListener('click', () => {
-  const inputVal = document.getElementById('input-name').value.trim();
-  if (inputVal !== "") {
-    document.getElementById('display-name').textContent = inputVal;
-    localStorage.setItem('nchu_player_name', inputVal);
-    document.getElementById('input-name').value = "";
-    alert("Nickname saved!");
-  }
-});
-
-// 一鍵重置所有存檔（方便在教室上台 Demo 前把進度歸零重新展示）
-document.getElementById('btn-reset-save').addEventListener('click', () => {
-  if (confirm("Are you sure you want to reset all exploration puzzles and achievement progress?")) {
-    localStorage.removeItem("nchu_game_save");
-    gameData = JSON.parse(JSON.stringify(defaultGameData));
     updateProfileProgress();
-    alert("All progress has been reset!");
-  }
 });
-
