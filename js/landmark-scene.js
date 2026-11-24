@@ -332,17 +332,25 @@ const LandmarkScene = (() => {
         btn.className = "overlay-choice-btn";
         btn.textContent = choice.text;
 
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
           overlayChoicesBox.innerHTML = "";
+
+          // ✅ 對話結束後：再點一下畫面任何地方就自動關閉對話視窗
+          const closeOnLastClick = () => {
+            npcOverlayBg.removeEventListener("click", closeOnLastClick);
+            closeDialogueOverlay();
+          };
+
           if (choice.playerLine) {
-            // 輪到玩家（NCHU Goose）回答：左下角頭像切換成校鵝
+            // 步驟 A：輪到玩家（NCHU Goose）回答
             overlaySpeakerName.textContent = "NCHU Goose";
             overlayDialogueText.textContent = choice.playerLine;
             if (overlayAvatarImg) {
               overlayAvatarImg.src = "images/goose.png";
             }
 
-            // 點擊畫面任何一處輪回 NPC 回應：左下角頭像切回 NPC
+            // 步驟 B：點一下畫面輪回 NPC 回應，並綁定「再點一下直接退出」
             const nextStep = () => {
               overlaySpeakerName.textContent = actor.name;
               overlayDialogueText.textContent = choice.reply;
@@ -350,6 +358,7 @@ const LandmarkScene = (() => {
                 overlayAvatarImg.src = actor.closeupImg || "images/goose.png";
               }
               npcOverlayBg.removeEventListener("click", nextStep);
+              setTimeout(() => npcOverlayBg.addEventListener("click", closeOnLastClick), 50);
             };
             setTimeout(() => npcOverlayBg.addEventListener("click", nextStep), 50);
           } else {
@@ -358,6 +367,7 @@ const LandmarkScene = (() => {
             if (overlayAvatarImg) {
               overlayAvatarImg.src = actor.closeupImg || "images/goose.png";
             }
+            setTimeout(() => npcOverlayBg.addEventListener("click", closeOnLastClick), 50);
           }
         });
 
